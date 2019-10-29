@@ -1,7 +1,17 @@
 {
   "animation": true,
   "difficult": "normal",
-  "simple_symbols": true,
+  "simple_symbols": false,
   "color": true,
-  "check_size": true
+  "check_size": true,
+  "symbols": {
+    "default": {
+      "cup": "\ud83e\udd5b",
+      "star": "\u2b50"
+    },
+    "simple": {
+      "cup": "\u041f",
+      "star": "*"
+    }
+  }
 }

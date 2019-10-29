@@ -136,15 +136,6 @@ class Settings:
         return speed
 
     @classmethod
-    def save_settings(cls):
-        json.dump(cls.DATA, open(cls.SETTINGS_PATH, 'w'), indent=2, ensure_ascii=False)
-
-    @classmethod
-    def set_difficult(cls, value):
-        cls.DATA[cls.DIFFICULT] = value
-        cls.save_settings()
-
-    @classmethod
     def get_animation(cls):
         return cls.get_param(cls.ANIMATION, "-f", "--fast")
 
@@ -159,6 +150,15 @@ class Settings:
     @classmethod
     def get_check_size(cls):
         return cls.get_param(cls.CHECK_SIZE, "-S", "--no-check-size")
+
+    @classmethod
+    def save_settings(cls):
+        json.dump(cls.DATA, open(cls.SETTINGS_PATH, 'w'), indent=2, ensure_ascii=True)
+
+    @classmethod
+    def set_difficult(cls, value):
+        cls.DATA[cls.DIFFICULT] = value
+        cls.save_settings()
 
     @classmethod
     def set_any_bool(cls, key: str, value: bool):
@@ -176,11 +176,9 @@ class Settings:
 
     @classmethod
     def set_simple(cls, value: bool):
+        global CUP_SYMBOL, STAR_SYMBOL
         cls.set_any_bool(cls.SIMPLE_SYMBOLS, value)
-        if cls.get_simple():
-            from simple_symbols import *
-        else:
-            from symbols import *
+        CUP_SYMBOL, STAR_SYMBOL = cls.get_symbols()
 
     @classmethod
     def set_check_size(cls, value: bool):
@@ -195,6 +193,12 @@ class Settings:
         if value == cls.DIFFICULT:
             return DIFFICULT.LOCALISED_SPEED.get(DIFFICULT.get_speed(cls.get_speed())[0])
         return Color("ВКЛЮЧЕНО", Color.GREEN) if cls.DATA.get(value) else Color("ВЫКЛЮЧЕНО", Color.RED)
+
+    @classmethod
+    def get_symbols(cls):
+        s = cls.DATA['symbols']
+        s = s['simple' if cls.get_simple() else 'default']
+        return s['cup'], s['star']
 
 
 class DIFFICULT:
@@ -245,10 +249,7 @@ class DIFFICULT:
         return cls.SPEED.get(diff.lower() if type(diff) is str else diff)
 
 
-if Settings.get_simple():
-    from simple_symbols import *
-else:
-    from symbols import *
+CUP_SYMBOL, STAR_SYMBOL = Settings.get_symbols()
 
 Color.DE_COLOR = not Settings.get_color()
 
