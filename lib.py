@@ -172,10 +172,15 @@ class Settings:
     @classmethod
     def set_color(cls, value: bool):
         cls.set_any_bool(cls.COLOR, value)
+        Color.DE_COLOR = not cls.get_color()
 
     @classmethod
     def set_simple(cls, value: bool):
         cls.set_any_bool(cls.SIMPLE_SYMBOLS, value)
+        if cls.get_simple():
+            from simple_symbols import *
+        else:
+            from symbols import *
 
     @classmethod
     def set_check_size(cls, value: bool):
@@ -245,8 +250,7 @@ if Settings.get_simple():
 else:
     from symbols import *
 
-if not Settings.get_color():
-    Color.DE_COLOR = True
+Color.DE_COLOR = not Settings.get_color()
 
 DOC = """Добро пожаловать в "НАПЁРСТКИ")
 Правила игры очень просты:
@@ -340,3 +344,7 @@ def slow_print(string: str, delay: float = 0.025):
 
 def if_yes(answer: str):
     return answer.lower() in ("", "да", "д", "y", "yes")
+
+
+if system == WINDOWS:
+    Settings.set_simple(True)
