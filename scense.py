@@ -11,7 +11,7 @@ count = [0, 0]
 def start(size: SIZE_TYPE):
     global index, TITLE, title
     y, x = size
-    delay = int(not args("-f", "--fast"))
+    delay = int(Settings.get_animation())
 
     while title != TITLE:
         if index < x:
@@ -27,11 +27,46 @@ def start(size: SIZE_TYPE):
         print('\r%s' % Color(center_text(size, title), 30, 47), flush=True)
 
 
-def render_doc(size: SIZE_TYPE):
-    print()
-    slow_print(DOC % (CUP_SYMBOL, STAR_SYMBOL))
+def settings(size: SIZE_TYPE):
+    s = tuple(Settings.LOCALIZED_FUNCS.keys())
+    render = ("""
+%s
+    
+0) Выйти из настроек
+
+""" + Color("    НЕКОТОРОЫЕ ИЗМЕНЕНИЯ ВСТУПЯТ ТОЛЬКО ПОСЛЕ ПЕРЕЗАПУСКА!!", Color.RED) + """
+
+Введите номер варианта (0-%s): """
+              ) % ("\n".join("%s) %s: %%s" % (i, s) for i, s in enumerate(map(Settings.LOCALIZED_FUNCS.get, s), 1)), len(s))
+    clear()
+    print('\r%s' % Color(center_text(size, TITLE + " - Настройки"), 30, 47), end='', flush=True)
+    slow_print(render % tuple(map(Settings.get_state, s)), 0)
 
     i = input()
+    while True:
+        if i.isnumeric() and int(i) in range(len(s) + 1):
+            i = int(i)
+            if i == 0:
+                return "back"
+            else:
+                clear()
+                Settings.edit_page(size, s[i - 1], TITLE + " - Настройки")
+                clear()
+                print('\r%s' % Color(center_text(size, TITLE + " - Настройки"), 30, 47), end='', flush=True)
+                slow_print(render % tuple(map(Settings.get_state, s)), 0)
+                i = input()
+                continue
+
+        i = input("Вы ввели данные некорректно! Повторие ввод: ")
+
+
+def render_doc(size: SIZE_TYPE):
+    print()
+    slow_print(DOC % (CUP_SYMBOL, STAR_SYMBOL, Settings.settings_keys()))
+
+    i = input()
+    if i.lower() in Settings.settings_keys():
+        return settings(size)
     if if_yes(i):
         slow_print("Тогда начинаем)")
         time.sleep(1)
@@ -51,20 +86,11 @@ def game(size: SIZE_TYPE):
     start_pos = randint(0, 2)
     current_pos = [0, 0, 0]
     current_pos[start_pos] = 1
-    speed = 0.1
-
-    if args("-H", "--super-hard"):
-        speed = 0.025
-    elif args("-h", "--hard"):
-        speed = 0.05
-    elif args("-e", "--easy"):
-        speed = 0.2
-    elif args("-E", "--super-easy"):
-        speed = 0.4
+    speed = Settings.get_speed()
 
     print('\r' + Color(center_text(size, title), 30, 47), flush=True)
     print(center_text(size, "Счёт %s:%s" % (Color(count[0], Color.GREEN), Color(count[1], Color.RED))), flush=True)
-    print('\n' * (y//2 - 2), end='', flush=True)
+    print('\n' * (y // 2 - 2), end='', flush=True)
     print_swap_position(START_POSITION[start_pos])
     time.sleep(1.5)
     print_swap_position(START_POSITION[-1])
@@ -81,8 +107,8 @@ def game(size: SIZE_TYPE):
             print_swap_position(s)
             time.sleep(speed)
 
-    answer = input(('\n' * (y - y//2 - 4)) + "В каком стакане звёздочка? (1, 2, 3): ")
-    while answer.strip() not in "123":
+    answer = input(('\n' * (y - y // 2 - 4)) + "В каком стакане звёздочка? (1, 2, 3): ").strip()
+    while not answer or answer not in "123":
         answer = input("Вы ввели данные неверно! Повторите попытку (1, 2, 3): ")
     if int(answer) - 1 != current_pos.index(1):
         count[1] += 1

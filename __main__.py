@@ -1,4 +1,3 @@
-import sys
 from scense import *
 
 # import threading
@@ -8,7 +7,7 @@ from scense import *
 def main():
     try:
         size = y, x = get_size()
-        if x < 39 and not args("-S", "--no-check-size"):
+        if x < 39 and not Settings.get_check_size():
             print("Ширина консоли уж слишком мала, сделайте её пошире "
                   "(или поставьте флаг -S или --no-check-size для снятия проверки на размер консоли)",  file=sys.stderr)
             return
@@ -18,12 +17,17 @@ def main():
                 colorama.init()
             except ImportError:
                 print("Установите библиотеку colorama (pip install colorama)", file=sys.stderr)
-        clear()
-        start(size)
-        if render_doc(size):
+        while True:
             clear()
-            while game(size):
+            start(size)
+            rd = render_doc(size)
+            if rd == "back":
+                continue
+            else:
                 clear()
+                while game(size):
+                    clear()
+                return
     except KeyboardInterrupt:
         print("\nДо встречи)")
 
